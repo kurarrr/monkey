@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kurarrr/monkey/token"
@@ -14,6 +15,8 @@ let ten = 10;
 let add = fn(x, y) {
 	x + y;
 };
+!-/*5;
+5 < 10 > 5;
 let result = add(five, ten);
 `
 	tests := []struct {
@@ -59,11 +62,11 @@ let result = add(five, ten);
 		{token.EOF, ""},
 	}
 
-    l := New(input)
-    for _, tt := range tests {
-        tok := l.NextToken()
+	l := New(input)
+	for _, tt := range tests {
+		tok := l.NextToken()
 
-        assert.Equal(t, tt.expectedType, tok.Type, "tests[] - tokentype wrong.")
-        assert.Equal(t, tok.Literal, tt.expectedLiteral, "tests[] - tokentype wrong.")
-    }
+		assert.Equal(t, tt.expectedType, tok.Type, "tests[] - tokentype wrong.")
+		assert.Equal(t, tok.Literal, tt.expectedLiteral, "tests[] - tokentype wrong.")
+	}
 }
