@@ -47,6 +47,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
+	// tokenを2つ進めて2つ入れる
+	// null,null -> null,a[0] -> a[0],a[1]
 	p.nextToken()
 	p.nextToken()
 
