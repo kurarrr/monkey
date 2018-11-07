@@ -19,6 +19,19 @@ type Expression interface {
 	expressionNode()
 }
 
+type InfixExpression struct {
+	Expression
+	LeftExp  Expression
+	RightExp Expression
+	Op       token.TokenType
+}
+
+type PrefixExpression struct {
+	Expression
+	rightExp Expression
+	op       string
+}
+
 type Program struct {
 	Statements []Statement
 }
@@ -111,3 +124,19 @@ func (es *ExpressionStatement) String() string {
 }
 
 func (i *Identifier) String() string { return i.Value }
+
+func (exp *InfixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("{")
+	out.WriteString("LeftExp : ")
+	out.WriteString(exp.LeftExp.String())
+	out.WriteString(",")
+	out.WriteString("RightExp : ")
+	out.WriteString(exp.RightExp.String())
+	out.WriteString(",")
+	out.WriteString("op : ")
+
+	out.WriteString(",")
+	out.WriteString("}")
+	return out.String()
+}

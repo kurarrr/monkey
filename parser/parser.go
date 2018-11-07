@@ -47,6 +47,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
+	p.registerInfix(token.PLUS, p.parseAddExpression)
+
 	// tokenを2つ進めて2つ入れる
 	// null,null -> null,a[0] -> a[0],a[1]
 	p.nextToken()
@@ -153,13 +155,34 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
+	leftExp := prefix()
+	fmt.Println(leftExp.String())
+	if p.peekTokenIs(token.SEMICOLON) {
+		return leftExp
+	}
+	if p.peekTokenPriority() < precedence {
+		return leftExp
+	}
+	infix := p.infixParseFns[p.peekToken.Type]
+	exp := infix(leftExp)
+	fmt.Println(leftExp.String())
 	if prefix == nil {
+		fmt.Println("return nil")
 		return nil
 	}
-	leftExp := prefix()
-	return leftExp
+	return exp
 }
 
+func (p *Parser) peekTokenPriority() int {
+	switch p.peekToken.Type {
+	case token.PLUS:
+		return SUM
+	case token.ASTERISK:
+		return PRODUCT
+	default:
+		return LOWEST
+	}
+}
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
@@ -174,4 +197,13 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	}
 	lit.Value = value
 	return lit
+}
+
+func (p *Parser) parseAddExpression(left ast.Expression) ast.Expression {
+	exp := p.parseExpression(SUM)
+	return &ast.InfixExpression{
+		LeftExp:  left,
+		RightExp: exp,
+		Op:       token.PLUS,
+	}
 }
