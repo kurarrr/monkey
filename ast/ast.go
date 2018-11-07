@@ -128,15 +128,14 @@ func (i *Identifier) String() string { return i.Value }
 func (exp *InfixExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("{")
+	out.WriteString("Op : ")
+	out.WriteString(string(exp.Op))
+	out.WriteString(", ")
 	out.WriteString("LeftExp : ")
 	out.WriteString(exp.LeftExp.String())
-	out.WriteString(",")
+	out.WriteString(", ")
 	out.WriteString("RightExp : ")
 	out.WriteString(exp.RightExp.String())
-	out.WriteString(",")
-	out.WriteString("op : ")
-
-	out.WriteString(",")
 	out.WriteString("}")
 	return out.String()
 }

@@ -49,6 +49,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseAddExpression)
+	p.registerInfix(token.ASTERISK, p.parseMulExpression)
 
 	// tokenを2つ進めて2つ入れる
 	// null,null -> null,a[0] -> a[0],a[1]
@@ -162,18 +163,28 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		fmt.Println("return : " + leftExp.String())
 		return leftExp
 	}
+	// precedence 以上を parseする
 	if p.peekTokenPriority() < precedence {
+
 		return leftExp
 	}
 	infix := p.infixParseFns[p.peekToken.Type]
 	rightExp := infix(leftExp)
 	fmt.Println("right : " + rightExp.String())
 	fmt.Println(leftExp.String())
-	if prefix == nil {
-		fmt.Println("return nil")
-		return nil
+	if p.peekTokenIs(token.SEMICOLON) {
+		fmt.Println("return : " + leftExp.String())
+		return leftExp
 	}
-	return rightExp
+	op := p.peekToken.Type
+	pr := p.peekTokenPriority()
+	// p.nextToken()
+	// p.nextToken()
+	return &ast.InfixExpression{
+		Op:       op,
+		LeftExp:  rightExp,
+		RightExp: p.parseExpression(pr),
+	}
 }
 
 func (p *Parser) peekTokenPriority() int {
@@ -205,9 +216,8 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 func (p *Parser) parseAddExpression(left ast.Expression) ast.Expression {
 	p.nextToken()
 	p.nextToken()
-
 	right := p.parseExpression(SUM)
-	fmt.Println(left.String() + " " + "res : " + right.String())
+	fmt.Println("cur " + string(p.curToken.Type) + "l : " + left.String() + " " + "r : " + right.String())
 	return &ast.InfixExpression{
 		LeftExp:  left,
 		RightExp: right,
@@ -215,9 +225,21 @@ func (p *Parser) parseAddExpression(left ast.Expression) ast.Expression {
 	}
 }
 
+func (p *Parser) parseMulExpression(left ast.Expression) ast.Expression {
+	p.nextToken()
+	p.nextToken()
+	right := p.parseExpression(PRODUCT)
+	fmt.Println("cur : " + string(p.curToken.Literal) + " ,l : " + left.String() + " " + "r : " + right.String())
+	return &ast.InfixExpression{
+		LeftExp:  left,
+		RightExp: right,
+		Op:       token.ASTERISK,
+	}
+}
+
 func main() {
 	input := `
-1+2+3;
+1*2*3;
 `
 	l := lexer.New(input)
 	p := New(l)
