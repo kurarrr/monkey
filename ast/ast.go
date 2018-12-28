@@ -19,23 +19,6 @@ type Expression interface {
 	expressionNode()
 }
 
-type InfixExpression struct {
-	Expression
-	LeftExp  Expression
-	RightExp Expression
-	Op       token.TokenType
-}
-
-type PrefixExpression struct {
-	Expression
-	rightExp Expression
-	op       string
-}
-
-type Program struct {
-	Statements []Statement
-}
-
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
@@ -44,6 +27,50 @@ type IntegerLiteral struct {
 func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+
+type PrefixExpression struct {
+	Token    token.Token // The prefix token, e.g. !
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode()      {}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+type InfixExpression struct {
+	Token    token.Token // The operator token, e.g. +
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (oe *InfixExpression) expressionNode()      {}
+func (oe *InfixExpression) TokenLiteral() string { return oe.Token.Literal }
+func (oe *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(oe.Left.String())
+	out.WriteString(" " + oe.Operator + " ")
+	out.WriteString(oe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+type Program struct {
+	Statements []Statement
+}
 
 func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
@@ -124,18 +151,3 @@ func (es *ExpressionStatement) String() string {
 }
 
 func (i *Identifier) String() string { return i.Value }
-
-func (exp *InfixExpression) String() string {
-	var out bytes.Buffer
-	out.WriteString("{")
-	out.WriteString("Op : ")
-	out.WriteString(string(exp.Op))
-	out.WriteString(", ")
-	out.WriteString("LeftExp : ")
-	out.WriteString(exp.LeftExp.String())
-	out.WriteString(", ")
-	out.WriteString("RightExp : ")
-	out.WriteString(exp.RightExp.String())
-	out.WriteString("}")
-	return out.String()
-}
